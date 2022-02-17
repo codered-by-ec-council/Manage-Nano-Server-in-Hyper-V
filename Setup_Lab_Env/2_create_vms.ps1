@@ -25,6 +25,10 @@ $VMsCounter ++
 $VMs += ,@($VMsCounter, 'ECCOUNCIL_HV02','yes','sta',2048)
 $VMsCounter ++
 
+# SCVMM node
+$VMs += ,@($VMsCounter, 'ECCOUNCIL_SCVMM','no','dyn',1024,4096)
+$VMsCounter ++
+
 # Start the creation of VMs
 foreach($VM in $VMs){
 
