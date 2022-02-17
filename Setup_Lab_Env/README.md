@@ -98,9 +98,11 @@ The variables were setup according:
 This step is necessary to download a VHD file of `Windows Server 2022`, that will be required to setup the Operational System according the model provided by Microsoft, according:
 
 - Visit the website [Evaluation Center](https://www.microsoft.com/en-us/evalcenter/evaluate-windows-server-2022), and then select the option `Download the VHD`
+
 ![Download the VHD](images/Download_the_VHD.PNG)
 
 - Complete the registration:
+
 ![Complete the registration](images/Complete_registration.png)
 
 **Download the VHD file.**
@@ -123,15 +125,19 @@ The variable need to be setup, according:
 Execute the script [3_install_dc.ps1](3_install_dc.ps1), and then complete then wait for the message:
 
 - Script will be on wait state, install next steps are complete
+ 
 ![Complete_Installation](images/Complete_Installation.PNG)
 
 - Set the regional settings
-![Complete_Installation2](images/Complete_Installation2.PNG)
+  
+![Regional Settings](images/Regional_Settings.PNG)
 
 - Accept the contract
+  
 ![Accept Contract](images/Accept_Contract.PNG)
 
 - Set password
+  
 ![Set password](images/Set_Password.PNG)
 
 After VM is ready to be remote connected, you need to execute the script again, that is expect to complete the steps:
