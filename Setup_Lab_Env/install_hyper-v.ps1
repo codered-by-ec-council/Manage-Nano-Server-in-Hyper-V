@@ -1,12 +1,21 @@
+# Install Hyper-V
+
+# Clear the screen
+cls
+
 # Set settings variables
 $VMS_PATH="C:"
 $VMS_DIR="${VM_PATH}/VMs"
 $VHD_PATH="${VMS_PATH}/${VMS_DIR}/Virtual Hard Disks/"
-$VM_SWITCH="PRIVATE"
+$VMS_SWITCH="PRIVATE"
 
 # Install Hyper-V role and required features for management (Restart may be required)
 IF(!(Get-WindowsFeature -Name Hyper-V)){
-    Install-WindowsFeature -Name Hyper-V -IncludeManagementTools
+    Write-Host "Installing Hyper-V feature, please wait" -ForegroundColor Yellow
+    Install-WindowsFeature -Name Hyper-V -IncludeManagementTools    
+}
+ELSE{
+    Write-Host "The Hyper-V feature is already installed" -ForegroundColor Blue
 }
 
 # Create VMs directory
@@ -21,9 +30,13 @@ Set-VMHost -VirtualMachinePath ${VMS_DIR}
 Set-VMHost -VirtualHardDiskPath $VHD_PATH
 
 # Create the VM Switch
-New-VMSwitch -Name $VM_SWITCH -SwitchType Private 
+IF(! (Get-VMSwitch -Name $VMS_SWITCH -ErrorAction SilentlyContinue) ){
+    Write-Host "Creating the VSwitch $VMS_SWITCH" -ForegroundColor Yellow
+    New-VMSwitch -Name $VMS_SWITCH -SwitchType Private 
+}
+ELSE{
+    Write-Host "The vSwitch $VMS_SWITCH already exists" -ForegroundColor Blue
+}
 
-<# 
-References:
-- https://docs.microsoft.com/en-us/windows-server/virtualization/hyper-v/get-started/install-the-hyper-v-role-on-windows-server
-#>
+# Enable Enhanced Session
+Set-VMHost -EnableEnhancedSessionMode $true
