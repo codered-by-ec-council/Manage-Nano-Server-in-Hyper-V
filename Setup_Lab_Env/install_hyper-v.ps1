@@ -19,7 +19,7 @@ ELSE{
 }
 
 # Continue only if commands are available
-IF(Get-Command -Name Get-vmhost -ErrorAction SilentlyContinue){
+IF( (Get-WindowsFeature -Name Hyper-V).InstallState -eq "Installed" -and (Get-Command -Name Get-vmhost -ErrorAction SilentlyContinue) ){
     # Create VMs directory
     IF(!(Test-Path ${VMS_DIR} )){
         New-Item -ItemType Directory -Path $VMS_PATH -Name $VMS_DIR
@@ -42,4 +42,7 @@ IF(Get-Command -Name Get-vmhost -ErrorAction SilentlyContinue){
 
     # Enable Enhanced Session
     Set-VMHost -EnableEnhancedSessionMode $true
+}
+ELSE{
+    Write-Host "Hyper-V commands are not available, however feature is installed, maybe a restart is required, please check" -ForegroundColor Red
 }
