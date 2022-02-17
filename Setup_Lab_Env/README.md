@@ -103,7 +103,7 @@ This step is necessary to download a VHD file of `Windows Server 2022`, that wil
 
 - Complete the registration:
 
-![Complete the registration](images/Complete_registration.png)
+![Complete the registration](images/Complete_Registration.PNG)
 
 **Download the VHD file.**
 
