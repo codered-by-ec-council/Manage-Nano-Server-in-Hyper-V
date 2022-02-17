@@ -15,7 +15,7 @@ IF(!( (Get-WindowsFeature -Name Hyper-V).InstallState -ne "Available" )){
     Install-WindowsFeature -Name Hyper-V -IncludeManagementTools
 }
 ELSE{
-    Write-Host "The Hyper-V feature is already installed" -ForegroundColor Blue
+    Write-Host "The Hyper-V feature is already installed" -ForegroundColor Green
 }
 
 # Continue only if commands are available
@@ -37,7 +37,7 @@ IF( (Get-WindowsFeature -Name Hyper-V).InstallState -eq "Installed" -and (Get-Co
         New-VMSwitch -Name $VMS_SWITCH -SwitchType Private 
     }
     ELSE{
-        Write-Host "The vSwitch $VMS_SWITCH already exists" -ForegroundColor Blue
+        Write-Host "The vSwitch $VMS_SWITCH already exists" -ForegroundColor Green
     }
 
     # Enable Enhanced Session

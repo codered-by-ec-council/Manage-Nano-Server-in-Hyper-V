@@ -26,7 +26,7 @@ IF(!(Test-Path -Path "${VMS_PATH}\${VM_NAME}\Virtual Hard Disks\${VM_NAME}_OS.vh
     Copy-Item -Path $VHD_TEMPLATE -Destination "${VMS_PATH}\${VM_NAME}\Virtual Hard Disks\${VM_NAME}_OS.vhd"
 }
 ELSE{
-    Write-Host "VHD file ${VMS_PATH}\${VM_NAME}\Virtual Hard Disks\${VM_NAME}_OS.vhd already exists." -ForegroundColor Blue
+    Write-Host "VHD file ${VMS_PATH}\${VM_NAME}\Virtual Hard Disks\${VM_NAME}_OS.vhd already exists." -ForegroundColor Green
 }
 
 # Attach VHD to VM
@@ -39,17 +39,18 @@ IF(!(Get-VMHardDiskDrive -VMName $VM_NAME -ControllerLocation 0 -ControllerNumbe
         -ControllerLocation 0
 }
 ELSE{
-    Write-Host "IDE Controller is already allocated, please check the VHD." -ForegroundColor Blue
+    Write-Host "IDE Controller is already allocated, please check the VHD." -ForegroundColor Green
 }
 
 # Start the VM
 IF($VM_STATUS=(Get-VM -VMName $VM_NAME).State -eq "off"){
     Write-Host "Starting the VM $VM_NAME, please wait." -ForegroundColor Yellow
     Start-VM -Name $VM_NAME
-    Start-Sleep -Seconds 180
+    $Shell = New-Object -ComObject "WScript.Shell"
+    $Button = $Shell.Popup("Please complete the installation and then set the Administrator password to $VM_PASSWORD", 0, "Continue DC installation", 0)    
 }
 ELSE{
-    Write-Host "VM $VM_NAME is already started" -ForegroundColor Blue
+    Write-Host "VM $VM_NAME is already started" -ForegroundColor Green
 }
 
 # Create authentication
@@ -79,7 +80,7 @@ IF(!$error) {
             Write-Host "Computer was renamed to $VM_NAME" -ForegroundColor Yellow
         }
         ELSE{
-            Write-Host "Computer name is already set to $VM_NAME" -ForegroundColor Blue
+            Write-Host "Computer name is already set to $VM_NAME" -ForegroundColor Green
         }
 
         # Set IP address
@@ -89,7 +90,7 @@ IF(!$error) {
             Write-Host "IP Address was set to ${VM_IP_ADDR}/24" -ForegroundColor Yellow
         }
         ELSE{
-            Write-Host "IP Address ${VM_IP_ADDR}/24 is already set" -ForegroundColor Blue
+            Write-Host "IP Address ${VM_IP_ADDR}/24 is already set" -ForegroundColor Green
         }
 
         # Set DNS address
@@ -102,12 +103,23 @@ IF(!$error) {
             Install-WindowsFeature -name AD-Domain-Services -IncludeManagementTools
         }
         ELSE{
-            Write-Host "ADDS Role is already installed" -ForegroundColor Blue
+            Write-Host "ADDS Role is already installed" -ForegroundColor Green
         }
        
-        # Promote to DC
-        IF( (Get-ADForest -Identity $DOMAIN_NAME -ErrorAction SilentlyContinue).RootDomain -eq $null){
+        # Install Hyper-V Feature
+        IF( (Get-WindowsFeature -Name RSAT-Hyper-V-Tools).InstallState -ne "Installed" ){
+        Write-Host "Installing Hyper-V feature on $VM_NAME to manage Nano Server, please wait" -ForegroundColor Yellow
+        Install-WindowsFeature -Name RSAT-Hyper-V-Tools
+        }
+        ELSE{
+        Write-Host "Hyper-V feature is already installed on $VM_NAME" -ForegroundColor Green
+        }
 
+        # Promote to DC
+        $error.clear()
+        try{ Get-ADForest -Identity $DOMAIN_NAME }
+        catch {}
+        IF($error){
             Write-Host "Installing the forest $DOMAIN_NAME, please wait." -ForegroundColor Yellow
             Install-ADDSForest `
                 -DomainName $DOMAIN_NAME `
@@ -118,10 +130,12 @@ IF(!$error) {
                 -LogPath "C:\ADDS\Logs" `
                 -SafeModeAdministratorPassword $VM_PASSWORD_SEC `
                 -Confirm:$false
+
+            Write-Host "Installation has been completed, the VM $VM_NAME is expect to restart, and then domain is ready" -ForegroundColor Green                        
         }
         ELSE{
-            Write-Host "The forest $DOMAIN_NAME is already installed." -ForegroundColor Blue
-        }
+            Write-Host "The forest $DOMAIN_NAME is already installed." -ForegroundColor Green
+        }        
     }
 }
 ELSE{

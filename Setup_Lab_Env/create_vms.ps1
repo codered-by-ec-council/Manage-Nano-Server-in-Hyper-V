@@ -74,6 +74,8 @@ foreach($VM in $VMs){
 
         # Connect to VSwitch
         Connect-VMNetworkAdapter -VMName $VM_NAME -SwitchName $VMS_SWITCH
+
+        Write-Host "VM $VM_NAME has been created" -ForegroundColor Green
     }
     ELSE{
         Write-Host "VM $VM_NAME already exists" -ForegroundColor Yellow
