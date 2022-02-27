@@ -18,7 +18,7 @@ IF(!(Test-Path -Path ${TEMP_DIR}\ADKSetup.exe)){
     Write-Host "Downloading Windows ADK, please wait" -ForegroundColor Yellow
     Invoke-WebRequest `
         -Uri 'https://go.microsoft.com/fwlink/p/?LinkId=526740' `
-        -OutFile '${TEMP_DIR}\ADKSetup.exe'
+        -OutFile "${TEMP_DIR}\ADKSetup.exe"
 }ELSE{
     Write-Host "Windows ADK installation file already exists" -ForegroundColor Green
 }
