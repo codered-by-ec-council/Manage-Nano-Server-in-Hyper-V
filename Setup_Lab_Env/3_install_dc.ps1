@@ -14,6 +14,12 @@ $VHD_TEMPLATE = "$env:HOMEPATH\Downloads\20348.169.amd64fre.fe_release_svc_refre
 $VM_USER      = "Administrator" # Username for authentication
 $VM_PASSWORD  = "P@ssw0rd" # Password for authentication
 
+# DHCP Scope Settings
+$DHCP_SCOPE_NAME   = "eccouncil"
+$DHCP_SCOPE_START  = "10.0.0.100"
+$DHCP_SCOPE_END    = "10.0.0.200"
+$DHCP_SCOPE_SUBNET = "255.255.255.0"
+
 # Check if VHD template file exists
 IF(!(Test-Path $VHD_TEMPLATE)){
     Write-Host "VHD file $VHD_TEMPLATE was not found, please check" -ForegroundColor Red
@@ -63,17 +69,26 @@ try{ Invoke-Command -VMName $VM_NAME -Credential $CRED -ScriptBlock{ Write-Host 
 catch {"Connection error to $VM_NAME"}
 IF(!$error) {
     # Run commands direct on VM
-    Invoke-Command -VMName $VM_NAME -ArgumentList $VM_HOSTNAME, $VM_IP_ADDR, $VM_IP_PREFIX, $DOMAIN_NAME, $VM_PASSWORD_SEC -Credential $CRED -ScriptBlock{
+    Invoke-Command -VMName $VM_NAME -ArgumentList `
+      $VM_HOSTNAME, $VM_IP_ADDR, $VM_IP_PREFIX, `
+      $DOMAIN_NAME, $VM_PASSWORD_SEC, `
+      $DHCP_SCOPE_NAME, $DHCP_SCOPE_START, $DHCP_SCOPE_END, $DHCP_SCOPE_SUBNET `
+      -Credential $CRED `
+      -ScriptBlock{
         
         # Set Variables by arguments
-        $VM_NAME         = $args[0]
-        $VM_IP_ADDR      = $args[1]
-        $VM_IP_PREFIX    = $args[2]
-        $DOMAIN_NAME     = $args[3]
-        $VM_PASSWORD_SEC = $args[4]
+        $VM_NAME           = $args[0]
+        $VM_IP_ADDR        = $args[1]
+        $VM_IP_PREFIX      = $args[2]
+        $DOMAIN_NAME       = $args[3]
+        $VM_PASSWORD_SEC   = $args[4]
+        $DHCP_SCOPE_NAME   = $args[5]
+        $DHCP_SCOPE_START  = $args[6]
+        $DHCP_SCOPE_END    = $args[7]
+        $DHCP_SCOPE_SUBNET = $args[8]
         $VM_INT          = "Ethernet"
         $VM_INT_INDEX    = (Get-NetAdapter -Name $VM_INT).ifIndex
-
+        
         # Rename the VM (Restart will be performed later)
         IF($env:COMPUTERNAME -ne $VM_NAME){
             Rename-Computer -NewName $VM_NAME -Force
@@ -113,6 +128,29 @@ IF(!$error) {
         }
         ELSE{
         Write-Host "Hyper-V feature is already installed on $VM_NAME" -ForegroundColor Green
+        }
+
+        # Setup DHCP Server
+        IF( (Get-WindowsFeature -Name 'DHCP').InstallState -ne "Installed" ){
+            
+            # Install DHCP Server
+            Write-Host "Installing DHCP Role and Feature, please wait" -ForegroundColor Yellow
+            Install-WindowsFeature -Name 'DHCP' –IncludeManagementTools
+            
+            # Setup DHCP Scope
+            Add-DhcpServerV4Scope `
+              -Name $DHCP_SCOPE_NAME `
+              -StartRange $DHCP_SCOPE_START `
+              -EndRange $DHCP_SCOPE_END `
+              -SubnetMask $DHCP_SCOPE_SUBNET
+            
+            # Add DNS Server Scope Option
+            Set-DhcpServerv4OptionValue `
+              -ScopeId ((Get-DhcpServerv4Scope | Where-Object{$_.Name -eq $DHCP_SCOPE_NAME}).ScopeId).IPAddressToString `
+              -DnsServer $VM_IP_ADDR -Force
+        }
+        ELSE{
+            Write-Host "DHCP Server Role is already installed" -ForegroundColor Green
         }
 
         # Promote to DC
