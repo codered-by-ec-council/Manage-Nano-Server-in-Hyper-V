@@ -89,15 +89,6 @@ IF(!$error) {
         $VM_INT          = "Ethernet"
         $VM_INT_INDEX    = (Get-NetAdapter -Name $VM_INT).ifIndex
         
-        # Rename the VM (Restart will be performed later)
-        IF($env:COMPUTERNAME -ne $VM_NAME){
-            Rename-Computer -NewName $VM_NAME -Force
-            Write-Host "Computer was renamed to $VM_NAME" -ForegroundColor Yellow
-        }
-        ELSE{
-            Write-Host "Computer name is already set to $VM_NAME" -ForegroundColor Green
-        }
-
         # Set IP address
         IF( ((Get-NetIPConfiguration -InterfaceIndex $VM_INT_INDEX).IPv4Address).IPAddress -ne $VM_IP_ADDR ){
             Remove-NetIPAddress -InterfaceIndex $VM_INT_INDEX -Confirm:$false
@@ -153,6 +144,18 @@ IF(!$error) {
             Write-Host "DHCP Server Role is already installed" -ForegroundColor Green
         }
 
+        # Rename the VM
+        IF($env:COMPUTERNAME -ne $VM_NAME){
+            Rename-Computer -NewName $VM_NAME -Force
+            Write-Host "Computer was renamed to $VM_NAME" -ForegroundColor Yellow
+            Write-Host "Computer will be restarted, please run the script again to continue" -ForegroundColor Yellow
+            Restart-Computer -Force
+            break
+        }
+        ELSE{
+            Write-Host "Computer name is already set to $VM_NAME" -ForegroundColor Green
+        }
+        
         # Promote to DC
         $error.clear()
         try{ Get-ADForest -Identity $DOMAIN_NAME }
