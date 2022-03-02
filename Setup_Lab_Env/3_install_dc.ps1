@@ -135,7 +135,7 @@ IF(!$error) {
             
             # Install DHCP Server
             Write-Host "Installing DHCP Role and Feature, please wait" -ForegroundColor Yellow
-            Install-WindowsFeature -Name 'DHCP' –IncludeManagementTools
+            Install-WindowsFeature -Name 'DHCP' -IncludeManagementTools
             
             # Setup DHCP Scope
             Add-DhcpServerV4Scope `
