@@ -29,6 +29,19 @@ $VMsCounter ++
 $VMs += ,@($VMsCounter, 'ECCOUNCIL_SCVMM','no','dyn',1024,4096)
 $VMsCounter ++
 
+# DNS nodes
+$VMs += ,@($VMsCounter, 'ECCOUNCIL_DNS01','no','dyn',1024,4096)
+$VMsCounter ++
+$VMs += ,@($VMsCounter, 'ECCOUNCIL_DNS02','no','dyn',1024,4096)
+$VMsCounter ++
+
+# IIS nodes
+$VMs += ,@($VMsCounter, 'ECCOUNCIL_IIS01','no','dyn',1024,4096)
+$VMsCounter ++
+$VMs += ,@($VMsCounter, 'ECCOUNCIL_IIS02','no','dyn',1024,4096)
+$VMsCounter ++
+
+
 # Start the creation of VMs
 foreach($VM in $VMs){
 
