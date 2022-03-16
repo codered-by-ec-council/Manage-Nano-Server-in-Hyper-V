@@ -1,0 +1,2 @@
+Import-Module IISAdministration
+Get-Command -Module iisadministration

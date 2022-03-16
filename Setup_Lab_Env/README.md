@@ -29,7 +29,7 @@ This is the diagram that contains details about VMs that will be created.
 |---|---|---|
 | DC01 | Domain Controller  | 10.0.0.10
 | HV01 | Hyper-V  | 10.0.0.20
-| HV03 | Hyper-V  | 10.0.0.30
+| HV02 | Hyper-V  | 10.0.0.30
 | SCVMM01 | System Center Virtual Machine Manager | 10.0.0.40
 | DNS01 | Domain Name System | 10.0.0.50
 | DNS02 | Domain Name System | 10.0.0.60
