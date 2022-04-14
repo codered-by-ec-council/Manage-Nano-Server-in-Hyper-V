@@ -1,10 +1,10 @@
 CLS
-$HV_NODE="HV01"
+$HV_NODE="HV02"
 Invoke-Command -ComputerName $HV_NODE -ScriptBlock{
 
     # Define Settings
-    $VM_NAME        = "IIS01"
-    $VM_MEM         = 1024
+    $VM_NAME        = "VM02"
+    $VM_MEM         = 512
     $VMS_PATH       = "C:\VMs"
     $VMS_PROCESSORS = 2 
     $VMS_GENERATION = 1
