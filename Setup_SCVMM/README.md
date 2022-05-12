@@ -52,3 +52,13 @@ Set the Regional seetings according yor region:
 ![Regional Settings](images/Regional_Settings.png)
 
 Define the password
+
+After password has been defined, you can click on the ok button, and then script continue the process, according:
+![Set IP](images/Set_IP.png)
+***As you can see a restart was required, therefore, you need to execute the script again***
+
+After you execute the script again, the process is completed, according:
+![Second Run](images/Second_Run.png)
+
+You can now logon on SCVMM server directly on eccouncil domain:
+![Joined_on_Domain](images/Joined_on_Domain.png)

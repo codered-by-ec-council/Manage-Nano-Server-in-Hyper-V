@@ -147,6 +147,11 @@ Function setup_VM(){
             IF( (Get-WindowsFeature -Name RSAT-Hyper-V-Tools).InstallState -eq "Available"){
                 Install-WindowsFeature -Name RSAT-Hyper-V-Tools
             }
+
+            # Install File Services Role
+            IF( (Get-WindowsFeature -Name File-Services).InstallState -eq "Available"){
+                Install-WindowsFeature -Name File-Services
+            }
             
             # Join on Domain
             IF( !( (Get-WmiObject -Class Win32_ComputerSystem).PartOfDomain )){
