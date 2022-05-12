@@ -1,7 +1,7 @@
 # Declare variables
-$SCVMM_INSTALL_FILE = "C:\Users\eccouncil\Downloads\SCVMM\SC2016_SCVMM_VHD.exe" # Path of the file that contains VHD
+$SCVMM_INSTALL_FILE = "V:\ISOs\SCVMM\SC2016_SCVMM_VHD.exe" # Path of the file that contains VHD
 $VM_NAME            = "ECCOUNCIL_SCVMM" # Name of SCVMM VM
-$VMs_PATH           = "C:\VMs" # Path to host VMs
+$VMs_PATH           = "V:\VMs" # Path to host VMs
 $VM_USER            = "Administrator" # Username for authentication
 $VM_PASSWORD        = "P@ssw0rd" # Password for authentication
 $VM_HOSTNAME        = "SCVMM01" # Hostname to be set on VM
@@ -9,6 +9,7 @@ $VM_IP_ADDR         = "10.0.0.40" # IP Address of DC
 $VM_IP_PREFIX       = "24" # Subnet to be set on interface
 $DOMAIN_NAME        = "eccouncil.local" # Domain that will be created
 $DNS_SERVER         = "10.0.0.10" # DNS Server IP Address
+$VHD_DATA_SIZE      = 100GB
 
 Function checks(){
     # Check SCVMM install path file
@@ -59,6 +60,30 @@ Function attach_VHD(){
     }
 }
 
+Function create_VHD_Data(){
+    # Create VHD
+    IF(!(Test-Path -Path "${VMs_PATH}\${VM_NAME}\Virtual Hard Disks\${VM_NAME}_Data.vhd")){
+        New-VHD -Path "${VMs_PATH}\${VM_NAME}\Virtual Hard Disks\${VM_NAME}_Data.vhd" `
+            -Dynamic `
+            -SizeBytes $VHD_DATA_SIZE `
+    }
+}
+
+Function attach_VHD_Data(){
+    # Attach VHD
+    IF(!(Get-VMHardDiskDrive -VMName $VM_NAME -ControllerLocation 1 -ControllerNumber 0 -ErrorAction SilentlyContinue)){
+    # Stop VM if required
+    stop_VM
+
+    Write-Host "VHD file ${VMs_PATH}\${VM_NAME}\Virtual Hard Disks\${VM_NAME}_Data.vhd was added" -ForegroundColor Yellow
+    Add-VMHardDiskDrive -VMName $VM_NAME `
+        -Path "${VMs_PATH}\${VM_NAME}\Virtual Hard Disks\${VM_NAME}_Data.vhd" `
+        -ControllerType IDE `
+        -ControllerNumber 0 `
+        -ControllerLocation 1
+    }
+}
+
 Function start_VM(){
     # Start the VM
     IF($CHECK_VM_EXISTS){ 
@@ -80,6 +105,9 @@ Function stop_VM(){
 }
 
 Function setup_VM(){
+    # Start VM, if required
+    start_VM
+
     # Create authentication
     $VM_PASSWORD_SEC = ConvertTo-SecureString -String $VM_PASSWORD -AsPlainText -Force
     $CRED = new-object -typename System.Management.Automation.PSCredential -argumentlist $VM_USER, $VM_PASSWORD_SEC
@@ -121,18 +149,13 @@ Function setup_VM(){
             Set-DnsClientServerAddress -InterfaceIndex $VM_INT_INDEX -ServerAddresses $DNS_SERVER
             Write-Host "DNS server was set to $DNS_SERVER" -ForegroundColor Yellow
         
-            # Rename the VM
-            IF($env:COMPUTERNAME -ne $VM_NAME){
-                Rename-Computer -NewName $VM_NAME -Force
-                Write-Host "Computer was renamed to $VM_NAME" -ForegroundColor Yellow
-                Write-Host "Computer will be restarted, please run the script again to continue" -ForegroundColor Yellow
-                Restart-Computer -Force
-                break
+            # Format disk
+            IF(!(Get-Volume -DriveLetter V -ErrorAction SilentlyContinue)){
+                Initialize-Disk -Number 1 -PartitionStyle GPT
+                New-Partition -DiskNumber 1 -UseMaximumSize -DriveLetter V 
+                Format-Volume -DriveLetter V -FileSystem NTFS -Confirm:$false -NewFileSystemLabel "VMs"
             }
-            ELSE{
-                Write-Host "Computer name is already set to $VM_NAME" -ForegroundColor Green
-            }
-
+            
             # Install Failover Clustering Feature
             IF( (Get-WindowsFeature -Name RSAT-Clustering).InstallState -eq "Available"){
                 Install-WindowsFeature -Name RSAT-Clustering
@@ -152,7 +175,19 @@ Function setup_VM(){
             IF( (Get-WindowsFeature -Name File-Services).InstallState -eq "Available"){
                 Install-WindowsFeature -Name File-Services
             }
-            
+
+            # Rename the VM
+            IF($env:COMPUTERNAME -ne $VM_NAME){
+                Rename-Computer -NewName $VM_NAME -Force
+                Write-Host "Computer was renamed to $VM_NAME" -ForegroundColor Yellow
+                Write-Host "Computer will be restarted, please run the script again to continue" -ForegroundColor Yellow
+                Restart-Computer -Force
+                break
+            }
+            ELSE{
+                Write-Host "Computer name is already set to $VM_NAME" -ForegroundColor Green
+            }
+
             # Join on Domain
             IF( !( (Get-WmiObject -Class Win32_ComputerSystem).PartOfDomain )){
                 Write-Host "Joining VM $VM_NAME on domain $DOMAIN_NAME" -ForegroundColor Yellow 
@@ -169,4 +204,6 @@ cls
 checks
 create_VHD
 attach_VHD
+create_VHD_Data
+attach_VHD_Data
 setup_VM
