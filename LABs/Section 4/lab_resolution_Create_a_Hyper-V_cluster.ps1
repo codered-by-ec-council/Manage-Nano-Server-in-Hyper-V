@@ -20,8 +20,7 @@ catch {"Connection error to $VM_NAME"}
 IF(!$error) {
     # Run commands direct on VM
     Invoke-Command -VMName $VM_NAME -ArgumentList `
-        $CLUSTER_NAME, $CLUSTER_NODES, $CLUSTER_IP, `
-        $SHARE_PATH, $SHARE_NAME, $SHARE_FULLACCESS `
+        $CLUSTER_NAME, $CLUSTER_NODES, $CLUSTER_IP `
         -Credential $CRED `
         -ScriptBlock{
             # Set Variables by arguments
