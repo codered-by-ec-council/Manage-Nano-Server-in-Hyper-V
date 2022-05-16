@@ -30,6 +30,14 @@ IF(!$error) {
         $SHARE_PATH, $SHARE_NAME, $SHARE_FULLACCESS `
         -Credential $CRED `
         -ScriptBlock{
+            # Set Variables by arguments
+            $CLUSTER_NAME     = $args[0]
+            $CLUSTER_NODES    = $args[1]
+            $CLUSTER_IP       = $args[2]
+            $SHARE_PATH       = $args[3]
+            $SHARE_NAME       = $args[4]
+            $SHARE_FULLACCESS = $args[5]
+
             # Create the cluster
             New-Cluster -Name $CLUSTER_NAME -Node $CLUSTER_NODES -NoStorage -StaticAddress $CLUSTER_IP
                     
